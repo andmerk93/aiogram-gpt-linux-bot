@@ -1,0 +1,7 @@
+aiogram
+mwclient
+mwparserfromhell
+openai
+pandas
+scipy
+tiktoken
