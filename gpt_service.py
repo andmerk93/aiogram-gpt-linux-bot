@@ -6,8 +6,6 @@ import pandas as pd
 from scipy.spatial.distance import cosine  # вычисляет сходство векторов
 from tiktoken import encoding_for_model
 
-from env import OPENAI_API, CSV_FILENAME, EMBEDDING_MODEL, GPT_MODEL
-
 
 class GptService:
     def __init__(self, openai_api, csv_filename, embedding_model, gpt_model):
@@ -35,15 +33,10 @@ class GptService:
         self.embedding_model = embedding_model
         self.gpt_model = gpt_model
         self.top_n = 100
-        self.token_budget = 4096 - 500,
-        self.print_message = False,
+        self.token_budget = 4096 - 500
+        self.print_message = False
         self.query = ''
         self.response_message = ''
-
-    @staticmethod
-    def relatedness_fn(x, y):
-        """функция схожести, возвращает косинусное расстояние"""
-        return 1 - cosine(x, y)
 
     def strings_ranked_by_relatedness(self) -> tuple[list[str], list[float]]:
         """
@@ -66,22 +59,21 @@ class GptService:
         query_embedding = query_embedding_response.data[0].embedding
 
         # Сравниваем пользовательский запрос
-        # с каждой токенизированной строкой DataFrame
+        # с каждой токенизированной строкой DataFrame 
+        # функция схожести (cosine) возвращает косинусное расстояние
         strings_and_relatednesses = [
-            (row["text"], self.relatedness_fn(query_embedding, row["embedding"]))
+            (row["text"], 1 - cosine(query_embedding, row["embedding"]))
             for _, row in self.df.iterrows()
-            # for i, row in self.df.iterrows()
         ]
 
         # Сортируем по убыванию схожести полученный список
         strings_and_relatednesses.sort(key=lambda x: x[1], reverse=True)
 
         # Преобразовываем наш список в кортеж из списков
-        # strings, relatednesses = zip(*strings_and_relatednesses)
         strings, _ = zip(*strings_and_relatednesses)
 
         # Возвращаем n лучших результатов
-        return strings[:self.top_n] #, relatednesses[:self.top_n]
+        return strings[:self.top_n]
 
     def num_tokens(self, text: str) -> int:
         """Возвращает число токенов в строке для заданной модели"""
@@ -98,7 +90,6 @@ class GptService:
         извлеченными из фрейма данных (базы знаний).
         """
         # функция ранжирования базы знаний по пользовательскому запросу
-        # strings, relatednesses = self.strings_ranked_by_relatedness()
         strings = self.strings_ranked_by_relatedness()
 
         # Шаблон инструкции для chatGPT

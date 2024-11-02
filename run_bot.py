@@ -28,7 +28,7 @@ async def handle_message(msg: types.Message):
 async def main():
     # Запуск процесса поллинга новых апдейтов
     await dp.start_polling(bot)
-    # await bot.delete_webhook()
+
 
 if __name__ == "__main__":
     gpt = GptService(OPENAI_API, CSV_FILENAME, EMBEDDING_MODEL, GPT_MODEL)
