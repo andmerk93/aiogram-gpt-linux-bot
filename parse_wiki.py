@@ -6,7 +6,6 @@ import mwclient          # для работы с MediaWiki API (для загр
 import mwparserfromhell  # Парсер для MediaWiki
 import pandas as pd      # для сохранения в csv базы знаний и токенов
 import tiktoken          # для подсчета токенов
-# import openai  # будем использовать для токинизации
 
 from env import CSV_FILENAME, GPT_MODEL
 
@@ -36,10 +35,6 @@ SECTIONS_TO_IGNORE = [
     "References and sources",
     "References and notes",
 ]
-# only matters insofar as it selects which tokenizer to use
-# GPT_MODEL = "gpt-3.5-turbo"
-# Для сохранения в CSV
-# CSV_FILENAME = 'linux_distribs.csv'
 
 
 def titles_from_category(

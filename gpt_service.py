@@ -38,7 +38,16 @@ class GptService:
         self.query = ''
         self.response_message = ''
 
-    def strings_ranked_by_relatedness(self) -> tuple[list[str], list[float]]:
+        self.message_header = (
+            'Use the below articles on Linux Distributions '
+            'to answer the subsequent question. '
+            'If the answer cannot be found in the articles, '
+            'write "I could not find an answer."'
+        )
+        self.current_message = ''
+        self.ranked_strings = []
+
+    def strings_ranked_by_relatedness(self):
         """
         Функция поиска.
         Возвращает строки и схожести,
@@ -59,7 +68,7 @@ class GptService:
         query_embedding = query_embedding_response.data[0].embedding
 
         # Сравниваем пользовательский запрос
-        # с каждой токенизированной строкой DataFrame 
+        # с каждой токенизированной строкой DataFrame
         # функция схожести (cosine) возвращает косинусное расстояние
         strings_and_relatednesses = [
             (row["text"], 1 - cosine(query_embedding, row["embedding"]))
@@ -73,14 +82,14 @@ class GptService:
         strings, _ = zip(*strings_and_relatednesses)
 
         # Возвращаем n лучших результатов
-        return strings[:self.top_n]
+        self.ranked_strings = strings[:self.top_n]
 
     def num_tokens(self, text: str) -> int:
         """Возвращает число токенов в строке для заданной модели"""
         encoding = encoding_for_model(self.gpt_model)
         return len(encoding.encode(text))
 
-    def query_message(self) -> str:
+    def query_message(self):
         """
         Функция формирования запроса к chatGPT
         по пользовательскому вопросу и базе знаний.
@@ -89,43 +98,32 @@ class GptService:
         с соответствующими исходными текстами,
         извлеченными из фрейма данных (базы знаний).
         """
-        # функция ранжирования базы знаний по пользовательскому запросу
-        strings = self.strings_ranked_by_relatedness()
 
         # Шаблон инструкции для chatGPT
-        message = (
-            'Use the below articles on Linux Distributions '
-            'to answer the subsequent question. '
-            'If the answer cannot be found in the articles, '
-            'write "I could not find an answer."'
-        )
+        message = self.message_header
         # Шаблон для вопроса
         question = f"\n\nQuestion: {self.query}"
 
         # Добавляем к сообщению для chatGPT
         # релевантные строки из базы знаний,
         # пока не выйдем за допустимое число токенов
-        for string in strings:
+        for string in self.ranked_strings:
             next_article = f'\n\nWikipedia article section:\n"""\n{string}\n"""'
             if (self.num_tokens(message + next_article + question) > self.token_budget):
                 break
             else:
                 message += next_article
-        return message + question
+        self.current_message = message + question
 
     def get_response(self):
         """
         Отвечает на вопрос, используя GPT и базу знаний.
         """
-
-        # Формируем сообщение к chatGPT (функция выше)
-        message = self.query_message()
-        # Если параметр True, то выводим сообщение
         if self.print_message:
-            logging.info(message)
+            logging.info(self.current_message)
         messages = [
             {"role": "system", "content": "You answer questions about Linux Distributions"},
-            {"role": "user", "content": message},
+            {"role": "user", "content": self.current_message},
         ]
         response = self.openai.chat.completions.create(
             model=self.gpt_model,
@@ -151,5 +149,8 @@ class GptService:
 
     def ask_gpt(self, message):
         self.query = message
+        self.query_message()
+        # функция ранжирования базы знаний по пользовательскому запросу
+        self.strings_ranked_by_relatedness()
         self.get_response()
         return self.response_message
