@@ -49,13 +49,10 @@ class GptService:
 
     def strings_ranked_by_relatedness(self):
         """
-        Функция поиска.
+        функция ранжирования базы знаний
+        по пользовательскому запросу.
         Возвращает строки и схожести,
         отсортированные от большего к меньшему
-
-        Формат - кортеж двух списков,
-        первый содержит строки,
-        второй - числа с плавающей запятой
         """
 
         # Отправляем в OpenAI API пользовательский запрос для токенизации
@@ -150,7 +147,6 @@ class GptService:
     def ask_gpt(self, message):
         self.query = message
         self.query_message()
-        # функция ранжирования базы знаний по пользовательскому запросу
         self.strings_ranked_by_relatedness()
         self.get_response()
         return self.response_message

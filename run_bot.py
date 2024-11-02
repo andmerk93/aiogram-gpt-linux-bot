@@ -8,7 +8,7 @@ from aiogram.filters.command import Command
 from env import API_TOKEN, OPENAI_API, CSV_FILENAME, EMBEDDING_MODEL, GPT_MODEL
 from gpt_service import GptService
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 session = AiohttpSession(proxy='http://proxy.server:3128')
 # в proxy указан прокси сервер pythonanywhere, он нужен для подключения
@@ -20,6 +20,17 @@ dp = Dispatcher()
 async def cmd_start(message: types.Message):
     """Хэндлер на команду /start"""
     await message.answer("Hi there! Ask me question about Linux distros")
+
+
+@dp.message(Command("help"))
+async def cmd_help(message: types.Message):
+    """Хэндлер на команду /help"""
+    await message.answer(
+        "This bot answers about linux distributions."
+        "Currently DB contains 3831 strings."
+        "You can ask a question in free form."
+        'For example "What is the oldest linux distribution?"'
+    )
 
 
 @dp.message()
