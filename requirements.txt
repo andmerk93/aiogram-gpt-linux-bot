@@ -1,4 +1,5 @@
 aiogram
+aiohttp-socks
 mwclient
 mwparserfromhell
 openai

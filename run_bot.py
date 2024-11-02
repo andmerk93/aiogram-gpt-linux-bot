@@ -1,6 +1,7 @@
 from asyncio import run
 import logging
 
+from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters.command import Command
 
@@ -9,7 +10,9 @@ from gpt_service import GptService
 
 logging.basicConfig(level=logging.DEBUG)
 
-bot = Bot(token=API_TOKEN)
+session = AiohttpSession(proxy='http://proxy.server:3128')
+# в proxy указан прокси сервер pythonanywhere, он нужен для подключения
+bot = Bot(token=API_TOKEN, session=session)
 dp = Dispatcher()
 
 
